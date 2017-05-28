@@ -1,24 +1,25 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
-#include <stdlib.h>
 
 #include "spi.h"
 
-#include <stdio.h>
 
-SlaveSelect spi_slave;
-volatile unsigned char spi_transmiting;
-volatile unsigned char *spi_tx, *spi_rx;
-volatile unsigned int spi_nbBytes, spi_count;
+static SlaveSelect spi_slave;
+static volatile unsigned char spi_transmiting;
+static volatile unsigned char *spi_tx, *spi_rx;
+static volatile unsigned int spi_nbBytes, spi_count;
 
-void spi_init()
+void spi_init(SpiMod mod)
 {
     //SCK, MOSI, SS as outputs
     DDRB |= (1 << 2) | (1 << 3) | (1 << 5);
-    //SS_ = 1
+    DDRD |= (1 << 2); //SS2 as output
+    //SS = 1
     PORTB |= (1 << 2);
+    PORTD |= (1 << 2); //SS2 = 1 
+
     //7:interrupt enable, 6:spi enable, 5:lsb first, 4:master mode, 3:clk polarity, 2:clk phase, 1,0:clk frequency
-    SPCR = ( 1 << 7 ) | ( 1 << 6 ) | ( 0 << 5 ) | ( 1 << 4 ) | ( 0 << 3 ) | ( 0 << 2 ) | ( 0 << 1 ) | ( 0 << 0 );
+    SPCR = ( 1 << 7 ) | ( 1 << 6 ) | ( 0 << 5 ) | ( 1 << 4 ) | ( mod << 2 ) | ( 0 << 1 ) | ( 1 << 0 );
     //no double speed
     SPSR = 0;
 
@@ -29,7 +30,7 @@ void spi_init()
     spi_count = 0;
 }
 
-inline void spi_ssLow()
+static inline void spi_ssLow()
 {
     switch(spi_slave)
     {
@@ -37,13 +38,14 @@ inline void spi_ssLow()
             PORTB &= ~(1 << 2);
             break;
         case SS2:
-            break;
+            PORTD &= ~(1 << 2);
+        break;
         default:
             break;
     }
 }
 
-inline void spi_ssHigh()
+static inline void spi_ssHigh()
 {
     switch(spi_slave)
     {
@@ -51,6 +53,7 @@ inline void spi_ssHigh()
             PORTB |= (1 << 2);
             break;
         case SS2:
+            PORTD |= (1 << 2);
             break;
         default:
             break;
@@ -72,9 +75,8 @@ void spi_transmit(unsigned char tx[], unsigned char rx[], unsigned int nbBytes, 
         if(tx == NULL)
             SPDR = 0x0;
         else
-            SPDR = *(tx ++);
+            SPDR = *(spi_tx ++);
     }
-
 }
 
 unsigned char spi_transmission_done()
