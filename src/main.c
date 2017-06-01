@@ -21,6 +21,9 @@ int main(void)
     init_pwm();
 
     screen_init();
+
+    lcd_clear();
+
     for(;;)
     {
         if(tic)
@@ -34,15 +37,20 @@ int main(void)
             if(rx[1] & 1<<2)
                 printf("ouvert\n");
             else
-                printf("%d\n",  (((rx[1]>>3)&0x1f) | ((rx[0]&0x07)<<5))/4 );
-                */
-        //    spi_transmit( tx, NULL, 16, SS2);
-        
-             float plop = read_thermocouple();
-            if(plop < 0)
-                printf("ouvert\n");
+            printf("%d\n",  (((rx[1]>>3)&0x1f) | ((rx[0]&0x07)<<5))/4 );
+            */
+            //    spi_transmit( tx, NULL, 16, SS2);
+
+            lcd_clear();
+            lcd_gotoXY(2, 2);
+            char tx[10];
+            float temp = read_thermocouple();
+            if(temp < 0)
+                sprintf(tx, "ouvert");
             else
-                printf("%d\n", (int)(plop));
+                sprintf(tx, "%d", (int)(temp));
+            printf("%s", tx);
+            lcd_write(tx);
         }
     }
     return 0;

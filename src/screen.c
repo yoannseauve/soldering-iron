@@ -114,14 +114,16 @@ void screen_init()
 
     unsigned char tx[6] = {0x21, 0x80 | LCD_CONTRAST, 0x04, 0x14, 0x20, 0x0C}; //LCD Extended Commands, Set LCD Vop (Contrast), Set Temp coefficient 0x04, LCD bias mode 1:48 0x13, LCD Basic Commands, LCD in normal mode
 
-    lcd_write(LCD_C, 6, tx);
+    lcd_send(LCD_C, 6, tx);
     while(! spi_transmission_done());
 
 }
 
-void lcd_write(LCDMOD mod, unsigned int nbBytes, unsigned char bytes[])
+void lcd_send(LCDMOD mod, unsigned int nbBytes, const unsigned char bytes[])
 {
     while(! spi_transmission_done());
+
+    spi_switchMod(SPI_MOD_0);
 
     if(mod == LCD_C)
         PORTD &= ~(1<<4); //DC low
@@ -137,5 +139,26 @@ void lcd_clear()
     unsigned int index;
     unsigned char bytes[LCD_Y]= {0x00};
     for(index=0; index < LCD_X / 8; index++)
-        lcd_write(LCD_D, LCD_Y, bytes);
+        lcd_send(LCD_D, LCD_Y, bytes);
+}
+
+void lcd_write(const char string[])
+{
+    while(*string != '\0')
+    {
+        if(*string >= 0x20 && *string <= 0x7F)
+        {
+            lcd_send(LCD_D, 5, ASCII[*string - 0x20]);
+            string ++;
+        }
+    }
+}
+
+void lcd_gotoXY(unsigned int x, unsigned int y)
+{
+    unsigned char tx[2];
+    tx[0] = 0x40 | (0x03 & y);
+    tx[1] = 0x80 | (0x7F & x);
+
+    lcd_send(LCD_C, 2, tx);
 }

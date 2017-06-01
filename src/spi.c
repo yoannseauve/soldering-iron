@@ -6,7 +6,8 @@
 
 static SlaveSelect spi_slave;
 static volatile unsigned char spi_transmiting;
-static volatile unsigned char *spi_tx, *spi_rx;
+static volatile unsigned char const *spi_tx;
+static volatile unsigned char *spi_rx;
 static volatile unsigned int spi_nbBytes, spi_count;
 
 void spi_init(SpiMod mod)
@@ -65,7 +66,7 @@ static inline void spi_ssHigh()
     }
 }
 
-void spi_transmit(unsigned char tx[], unsigned char rx[], unsigned int nbBytes, SlaveSelect slave)
+void spi_transmit(const unsigned char tx[], unsigned char rx[], unsigned int nbBytes, SlaveSelect slave)
 {
     if(nbBytes)
     {

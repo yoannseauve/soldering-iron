@@ -6,5 +6,7 @@
 typedef enum{LCD_C, LCD_D} LCDMOD;
 
 void screen_init();
-void lcd_write(LCDMOD mod, unsigned int nbBytes, unsigned char bytes[]);
+void lcd_send(LCDMOD mod, unsigned int nbBytes, const unsigned char bytes[]);
 void lcd_clear();
+void lcd_write(const char string[]);
+void lcd_gotoXY(unsigned int x, unsigned int y);
