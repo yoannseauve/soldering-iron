@@ -30,6 +30,11 @@ void spi_init(SpiMod mod)
     spi_count = 0;
 }
 
+void spi_switchMod(SpiMod mod)
+{
+    SPCR = (SPCR & 0xF3) | ( mod << 2 );
+}
+
 static inline void spi_ssLow()
 {
     switch(spi_slave)
