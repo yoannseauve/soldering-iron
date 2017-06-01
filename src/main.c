@@ -4,6 +4,7 @@
 #include "spi.h"
 #include "timer.h"
 #include "screen.h"
+#include "thermocouple.h"
 
 #include <avr/io.h>
 
@@ -36,7 +37,12 @@ int main(void)
                 printf("%d\n",  (((rx[1]>>3)&0x1f) | ((rx[0]&0x07)<<5))/4 );
                 */
         //    spi_transmit( tx, NULL, 16, SS2);
-            while(! spi_transmission_done());
+        
+             float plop = read_thermocouple();
+            if(plop < 0)
+                printf("ouvert\n");
+            else
+                printf("%d\n", (int)(plop));
         }
     }
     return 0;
