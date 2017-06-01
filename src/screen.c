@@ -149,8 +149,8 @@ void lcd_write(const char string[])
         if(*string >= 0x20 && *string <= 0x7F)
         {
             lcd_send(LCD_D, 5, ASCII[*string - 0x20]);
-            string ++;
         }
+            string ++;
     }
 }
 
