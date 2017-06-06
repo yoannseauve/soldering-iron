@@ -5,6 +5,7 @@
 #include "timer.h"
 #include "screen.h"
 #include "thermocouple.h"
+#include "adc.h"
 
 #include <avr/io.h>
 
@@ -23,6 +24,7 @@ int main(void)
     screen_init();
 
     lcd_clear();
+    ADC_init();
 
     for(;;)
     {
@@ -42,6 +44,7 @@ int main(void)
             //    spi_transmit( tx, NULL, 16, SS2);
 
             lcd_clear();
+
             lcd_gotoXY(2, 2);
             char tx[10];
             float temp = read_thermocouple();
@@ -50,6 +53,10 @@ int main(void)
             else
                 sprintf(tx, "%d", (int)(temp));
             printf("%s", tx);
+            lcd_write(tx);
+
+            lcd_gotoXY(2, 3);
+            sprintf(tx, "%d", ADC_read());
             lcd_write(tx);
         }
     }
