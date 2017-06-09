@@ -13,7 +13,7 @@ float read_thermocouple()
     if(rx[1] & 1<<2)
         return -1.0;
 
-    int four_temp = (((rx[1]>>3)&0x1f) | ((rx[0]&0x07)<<5));
+    int four_temp = (((rx[1]>>3)&0x1f) | ((rx[0]&0x7f)<<5));
 
     return four_temp/4.0 ;
 }
