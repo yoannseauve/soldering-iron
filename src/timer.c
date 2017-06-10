@@ -31,7 +31,7 @@ void init_pwm() //timer0
     TIMSK0 = 0;
 
     TCCR0A = (1<<7) | (0<<6) | (0<<1) | (1<<0); //PWM, Phase Correct
-    TCCR0B = (0<<3) | (0<<2) | (1<<1) | (0<<0); // No prescaling
+    TCCR0B = (0<<3) | (1<<2) | (0<<1) | (1<<0); // 1/1024 prescaling
 }
 
 void set_pwm(unsigned char duty_cycle)

@@ -55,9 +55,12 @@ int main(void)
             printf("%s", tx);
             lcd_write(tx);
 
+            unsigned int potar = ADC_read();
             lcd_gotoXY(2, 3);
-            sprintf(tx, "%d", ADC_read());
+            sprintf(tx, "%d", potar);
             lcd_write(tx);
+
+            set_pwm((unsigned char)(potar/4));
         }
     }
     return 0;
