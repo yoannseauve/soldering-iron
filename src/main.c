@@ -9,6 +9,8 @@
 
 #include <avr/io.h>
 
+
+
 int main(void)
 {
     uart_init(9600);
@@ -26,22 +28,15 @@ int main(void)
     lcd_clear();
     ADC_init();
 
+    float in[3] = {0, 0, 0};
+    float out[3] = {0, 0, 0};
+    float output;
+
     for(;;)
     {
         if(tic)
         {
-            
             tic = 0;
-            /*
-            spi_transmit( NULL, rx, 2, SS);
-            while(! spi_transmission_done());
-
-            if(rx[1] & 1<<2)
-                printf("ouvert\n");
-            else
-            printf("%d\n",  (((rx[1]>>3)&0x1f) | ((rx[0]&0x07)<<5))/4 );
-            */
-            //    spi_transmit( tx, NULL, 16, SS2);
 
             lcd_clear();
 
@@ -52,15 +47,39 @@ int main(void)
                 sprintf(tx, "ouvert");
             else
                 sprintf(tx, "%d", (int)(temp));
-            printf("%s", tx);
+            //printf("%s\n", tx);
             lcd_write(tx);
 
-            unsigned int potar = ADC_read();
+            unsigned int potar = (unsigned int)(ADC_read()/2.5);
             lcd_gotoXY(2, 3);
             sprintf(tx, "%d", potar);
             lcd_write(tx);
 
-            set_pwm((unsigned char)(potar/4));
+
+            //correcteur
+            in[2] = in[1];
+            in[1] = in[0];
+            in[0] = potar - temp;
+
+            out[2] = out[1];
+            out[1] = out[0];
+            out[0] = in[0]*0.56709957 - in[1]*1.10521363 + in[2]*0.53830228 + out[1]*1.98701299 - out[2]*0.98701299;
+
+            output = out[0];
+            if(temp < 0)
+                output = 0.0;
+
+            if(output > 255)
+                output = 255;
+
+             if(output < 0)
+                 output = 0;
+            
+            set_pwm((unsigned char)(output));
+
+            lcd_gotoXY(0, 4);
+            lcd_power((unsigned char)(output));
+
         }
     }
     return 0;

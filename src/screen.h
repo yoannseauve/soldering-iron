@@ -10,3 +10,4 @@ void lcd_send(LCDMOD mod, unsigned int nbBytes, const unsigned char bytes[]);
 void lcd_clear();
 void lcd_write(const char string[]);
 void lcd_gotoXY(unsigned int x, unsigned int y);
+void lcd_power(unsigned char power);

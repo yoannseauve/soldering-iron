@@ -157,8 +157,51 @@ void lcd_write(const char string[])
 void lcd_gotoXY(unsigned int x, unsigned int y)
 {
     unsigned char tx[2];
-    tx[0] = 0x40 | (0x03 & y);
+    tx[0] = 0x40 | (0x07 & y);
     tx[1] = 0x80 | (0x7F & x);
 
     lcd_send(LCD_C, 2, tx);
+}
+
+void lcd_power(unsigned char power)
+{
+    unsigned char c = 0x18;
+    lcd_send(LCD_D, 1, &c);
+    lcd_send(LCD_D, 1, &c);
+    lcd_send(LCD_D, 1, &c);
+    lcd_send(LCD_D, 1, &c);
+    lcd_send(LCD_D, 1, &c);
+    c = 0x3C;
+    lcd_send(LCD_D, 1, &c);
+    c = 0x7E;
+    lcd_send(LCD_D, 1, &c);
+    c = 0xff;
+    lcd_send(LCD_D, 1, &c);
+    c = 0;
+    lcd_send(LCD_D, 1, &c);
+
+    int i;
+    for(i = 0; i<64; i++)
+    {
+        if(4*i < power)
+            c = 0xBD;
+        else
+            c = 0x81;
+        lcd_send(LCD_D, 1, &c);
+    }
+    c = 0;
+    lcd_send(LCD_D, 1, &c);
+    c = 0xff;
+    lcd_send(LCD_D, 1, &c);
+    c = 0x7E;
+    lcd_send(LCD_D, 1, &c);
+    c = 0x3C;
+    lcd_send(LCD_D, 1, &c);
+    c = 0x18;
+    lcd_send(LCD_D, 1, &c);
+    lcd_send(LCD_D, 1, &c);
+    lcd_send(LCD_D, 1, &c);
+    lcd_send(LCD_D, 1, &c);
+    lcd_send(LCD_D, 1, &c);
+    lcd_send(LCD_D, 1, &c);
 }
