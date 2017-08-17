@@ -50,7 +50,7 @@ int main(void)
             //printf("%s\n", tx);
             lcd_write(tx);
 
-            unsigned int potar = (unsigned int)(ADC_read()/2.5);
+            unsigned int potar = (unsigned int)(ADC_read()/1.3);
             lcd_gotoXY(2, 3);
             sprintf(tx, "%d", potar);
             lcd_write(tx);
