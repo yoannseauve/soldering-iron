@@ -9,7 +9,8 @@
 
 #include <avr/io.h>
 
-
+#define MAX_TEMP 750
+#define OPEN_CIRCUIT_MSG "ouvert"
 
 int main(void)
 {
@@ -44,13 +45,13 @@ int main(void)
             char tx[10];
             float temp = read_thermocouple();
             if(temp < 0)
-                sprintf(tx, "ouvert");
+                sprintf(tx, OPEN_CIRCUIT_MSG);
             else
                 sprintf(tx, "%d", (int)(temp));
             //printf("%s\n", tx);
             lcd_write(tx);
 
-            unsigned int potar = (unsigned int)(ADC_read()/1.3);
+            unsigned int potar = (unsigned int)(ADC_read()/(1024.0/MAX_TEMP));
             lcd_gotoXY(2, 3);
             sprintf(tx, "%d", potar);
             lcd_write(tx);
