@@ -9,7 +9,7 @@
 
 #include <avr/io.h>
 
-#define MAX_TEMP 750
+#define MAX_TEMP 500
 #define OPEN_CIRCUIT_MSG "ouvert"
 
 int main(void)
