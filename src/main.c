@@ -12,6 +12,8 @@
 #define MAX_TEMP 500
 #define OPEN_CIRCUIT_MSG "ouvert"
 
+#define NUMBUFF_SIZE 80
+
 int main(void)
 {
     uart_init(9600);
@@ -33,6 +35,11 @@ int main(void)
     float out[3] = {0, 0, 0};
     float output;
 
+
+    char caracMode = 0;
+    int caracNumIn = 0;
+    int caracPWM = 0;
+
     for(;;)
     {
         if(tic)
@@ -48,12 +55,35 @@ int main(void)
                 sprintf(tx, OPEN_CIRCUIT_MSG);
             else
                 sprintf(tx, "%d", (int)(temp));
-            //printf("%s\n", tx);
             lcd_write(tx);
 
-            unsigned int potar = (unsigned int)(ADC_read()/(1024.0/MAX_TEMP));
+            /// uart commande
+            char inChar=uart_read_char();
+            while(inChar != 0)
+            {
+                if (inChar == '\r')
+                    caracPWM = (caracNumIn <= 255)? caracNumIn : 255;
+                if (inChar == 'c')
+                    caracMode = 1;
+                if (inChar == 'r')
+                    caracMode = 0;
+                if(inChar >= '0' && inChar <= '9')
+                    caracNumIn = 10 * caracNumIn + (inChar - '0');
+                else
+                    caracNumIn=0;
+                inChar=uart_read_char();
+            }
+
+
+            /// end uart commande
+
+
             lcd_gotoXY(2, 3);
-            sprintf(tx, "%d", potar);
+            unsigned int potar = (unsigned int)(ADC_read()/(1024.0/MAX_TEMP));
+            if (caracMode == 0)
+                sprintf(tx, "%d", potar);
+            else
+                sprintf(tx, "carca: %d", caracPWM);
             lcd_write(tx);
 
 
@@ -83,10 +113,27 @@ int main(void)
             if(output > 255)
                 output = 255;
 
-             if(output < 0)
-                 output = 0;
-            
-            set_pwm((unsigned char)(output));
+            if(output < 0)
+                output = 0;
+
+            if (caracMode == 0)
+            {
+                set_pwm((unsigned char)(output));
+                printf("potar: %d\ttemp: %c%d%d%d\r", potar, (temp<0)?'-':' ', (int)(temp/100), ((int)(temp/10))%10, ((int)(temp))%10);
+            }
+            else
+            {
+                //reset correcteur
+                in[0] = 0.0;
+                in[1] = 0.0;
+                in[2] = 0.0;
+                out[0] = 0.0;
+                out[1] = 0.0;
+                out[2] = 0.0;
+
+                set_pwm((unsigned char)(caracPWM));
+                printf("carac PWM:%d, temp:%c%d%d%d\r", caracPWM, (temp<0)?'-':' ', (int)(temp/100), ((int)(temp/10))%10, ((int)(temp))%10);
+            }
 
             lcd_gotoXY(0, 4);
             lcd_power((unsigned char)(output));
