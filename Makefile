@@ -15,7 +15,7 @@ BUILD_LOCATION = build_$(BOARD_TAG)
 ALL:make_folders $(PROJECT_NAME)
 
 
-obj/%.o: src/%.c make_folders
+obj/%.o: src/%.c
 	#$(AVR_LOCATION)/avr-gcc -mmcu=$(MCU) -DF_CPU=$(F_CPU) -DARDUINO=$(ARDUINO_VERSION) -D__PROG_TYPES_COMPAT -Wall -ffunction-sections -fdata-sections -Os -std=gnu11 -flto -fno-fat-lto-objects -c $< -o $@ -MD -I src/
 	#$(AVR_LOCATION)/avr-gcc -mmcu=$(MCU) -DF_CPU=$(F_CPU) -DARDUINO=$(ARDUINO_VERSION) -D__PROG_TYPES_COMPAT -Wall -ffunction-sections -fdata-sections -Os -std=gnu11 -flto -c $< -o $@ -MD -I src/
 	$(AVR_LOCATION)/avr-gcc -mmcu=$(MCU) -DF_CPU=$(F_CPU) -D__PROG_TYPES_COMPAT -Wall -ffunction-sections -fdata-sections -Os -std=gnu11 -flto -c $< -o $@ -MD -I src/
