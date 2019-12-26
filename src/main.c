@@ -6,13 +6,20 @@
 #include "screen.h"
 #include "thermocouple.h"
 #include "adc.h"
+#include "linearisation.h"
 
 #include <avr/io.h>
 
 #define MAX_TEMP 500
 #define OPEN_CIRCUIT_MSG "ouvert"
 
+#define Te 0.5 //sampling frequency
+#define Kp 2.0 //PID proportional parameter
+#define Kd 0.8 //PID derivator parameter
+#define tau 130.0 //PI integrator parameter
+
 #define NUMBUFF_SIZE 80
+
 
 int main(void)
 {
@@ -31,9 +38,10 @@ int main(void)
     lcd_clear();
     ADC_init();
 
-    float in[3] = {0, 0, 0};
-    float out[3] = {0, 0, 0};
-    float output;
+    double in[3] = {0, 0, 0};
+    double ind[3] = {0, 0, 0};
+    double out[2] = {0, 0};
+    unsigned char PWM_consigne;
 
 
     char caracMode = 0;
@@ -88,57 +96,40 @@ int main(void)
 
 
             //correcteur
+
+            //PI
+
+            //PID
+            in[0] = potar - temp;
+            if (out[0] > 0 && out[0] < 43.6576) //if no saturation
+                out[0] = out[1] + Kp*(1.0+(Te/tau)+(Kd/Te))*in[0] - Kp*(1.0+2.0*(Kd/Te))*in[1] + Kp*(Kd/Te)*in[2];
+            else    //do not charg integrater when in saturation
+                out[0] = out[1] + Kp*(1.0+(Kd/Te))*in[0] - Kp*(1.0+2.0*(Kd/Te))*in[1] + Kp*(Kd/Te)*in[2];
+
             in[2] = in[1];
             in[1] = in[0];
-            in[0] = potar - temp;
-
-            out[2] = out[1];
             out[1] = out[0];
-            out[0] = in[0]*0.94516595 - in[1]*1.84202271 + in[2]*0.89717046 + out[1]*1.98701299 - out[2]*0.98701299;
 
-            if(in[0]>0.0 && in[1]<0.0 && in[2]<0.0)
-            {
-                in[0] = 0.0;
-                in[1] = 0.0;
-                in[2] = 0.0;
-                out[0] = 0.0;
-                out[1] = 0.0;
-                out[2] = 0.0;
-            }
+            //linearisation of the iron response
 
-            output = out[0];
-            if(temp < 0)
-                output = 0.0;
-
-            if(output > 255)
-                output = 255;
-
-            if(output < 0)
-                output = 0;
+            PWM_consigne = linearisation(out[0]);
 
             if (caracMode == 0)
             {
-                set_pwm((unsigned char)(output));
-                printf("potar: %d\ttemp: %c%d%d%d\r", potar, (temp<0)?'-':' ', (int)(temp/100), ((int)(temp/10))%10, ((int)(temp))%10);
+                set_pwm(PWM_consigne);
+                printf("potar: %d\ttemp: %c%d%d%d\tPWM: %d\r", potar, (temp<0)?'-':' ', (int)(temp/100), ((int)(temp/10))%10, ((int)(temp))%10, PWM_consigne);
             }
             else
             {
-                //reset correcteur
-                in[0] = 0.0;
-                in[1] = 0.0;
-                in[2] = 0.0;
-                out[0] = 0.0;
-                out[1] = 0.0;
-                out[2] = 0.0;
-
-                set_pwm((unsigned char)(caracPWM));
+                set_pwm(caracPWM);
                 printf("carac PWM:%d, temp:%c%d%d%d\r", caracPWM, (temp<0)?'-':' ', (int)(temp/100), ((int)(temp/10))%10, ((int)(temp))%10);
             }
 
             lcd_gotoXY(0, 4);
-            lcd_power((unsigned char)(output));
+            lcd_power(PWM_consigne);
 
         }
     }
     return 0;
 }
+
